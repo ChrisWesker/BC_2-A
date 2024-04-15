@@ -9,9 +9,6 @@ report 50101 "ARCo Calc. Item Sales Price_"
     {
         dataitem(Item; Item)
         {
-            // 2021.06.28 Modify by Frank
-            // RequestFilterFields = "No.", "Item Category Code";
-            // 2023.03.23 Add new filters - Steven
 
             RequestFilterFields = "No.", "Item Category Code", "Vendor No.", "ARCO Created Date", "ARCO Last Date Adjusted";
             DataItemTableView = where("ARCO Do Not Adjust Sales Price" = CONST(false));
@@ -30,7 +27,7 @@ report 50101 "ARCo Calc. Item Sales Price_"
                 ii: Integer;
                 lASCII: Char;
             begin
-                // << chris add for check update in item sales price
+                // <<  add for check update in item sales price
 
                 lRec_BOMComp.SetRange(Type, lRec_BOMComp.Type::Item);
                 lRec_BOMComp.SetRange("No.", Item."No.");
@@ -202,13 +199,11 @@ report 50101 "ARCo Calc. Item Sales Price_"
                     end;
                 end;
 
-                //   chris add for check update in item sales price >>
-
                 if not HideValidationDialog then
                     Window.Update(1, "No.");
 
                 if CheckItem("No.") then begin
-                    //20210804 Modify by Renee -------------------------- <<
+                    
                     //無論是子件或是母件，只要有指定主要供應商，則視為採購件的計算方式(A)
                     //IF (GetPurch_RefPrice("No.", "Vendor No.", true) > 0) THEN begin
                     IF ("Vendor No." <> '') then begin
@@ -224,14 +219,13 @@ report 50101 "ARCo Calc. Item Sales Price_"
                             CalcItemSalesPrice_withoutBOM("No.");
                     end;
                     //commit;
-                    //20210627 Modify by Renee ---------------------- <<
                     //end;
                 end else begin
-                    //20210804 Modify by Renee -------------------------- <<
+
                     //無論是子件或是母件，只要有指定主要供應商，則視為採購件的計算方式(A)
                     //IF (GetPurch_RefPrice("No.", "Vendor No.", true) > 0) THEN begin
                     IF ("Vendor No." <> '') then begin
-                        //20210804 Modify by Renee -------------------------- >>
+                        
                         SetItemSalesPriceToZero_withoutBOM("No.");
                     end else begin
                         lRec_BOMComp3.RESET;
@@ -243,8 +237,7 @@ report 50101 "ARCo Calc. Item Sales Price_"
                             SetItemSalesPriceToZero_withoutBOM("No.");
                     end;
                 end;
-                //20210627 Modify by Renee ---------------------- >>
-
+            
             end;
 
 
@@ -274,7 +267,7 @@ report 50101 "ARCo Calc. Item Sales Price_"
                 LineCreatedCount := 0;
                 LineUpdatedCount := 0;
                 ItemsBlocked := false;
-                //AdjustDate := Today;  //2021.05.16 Mark by Renee for Issue Log Part2 客製第 16 項
+                //AdjustDate := Today;  
                 gTxt_Filters := Item.GetFilters;
 
                 IF AdjustDate = 0D then AdjustDate := Today;
@@ -288,7 +281,7 @@ report 50101 "ARCo Calc. Item Sales Price_"
 
             end;
         }
-        dataitem(Integer; Integer)   //2021.05.16 Mark by Renee for Issue Log Part2 客製第 16 項
+        dataitem(Integer; Integer)   
 
         {
             column(SalesLineBuffer_Doc; SalesLineBuffer."Document No.")
@@ -351,7 +344,7 @@ report 50101 "ARCo Calc. Item Sales Price_"
             {
                 group(Options)
                 {
-                    //2021.05.16 add by Renee for Issue Log Part 2 客製第 16 項 <<
+
                     Caption = 'Options';
                     field(AdjustDate; AdjustDate)
                     {
@@ -369,7 +362,7 @@ report 50101 "ARCo Calc. Item Sales Price_"
                         ApplicationArea = All;
                         Caption = 'Set To Zero';
                     }
-                    //2021.05.16 add by Renee for Issue Log Part 2 客製第 16 項 >>
+                   
                 }
             }
         }
@@ -380,7 +373,7 @@ report 50101 "ARCo Calc. Item Sales Price_"
 
         trigger OnOpenPage()
         begin
-            //AdjustDate := Today;  //2021.05.16 Mark by Renee for Issue Log Part2 客製第 16 項
+            //AdjustDate := Today;  
         end;
     }
 
@@ -412,10 +405,10 @@ report 50101 "ARCo Calc. Item Sales Price_"
         SalesLineBuffer: Record "ARCO Sales Line Buffer" temporary;
         ErrorLineNo: Integer;
         gTxt_Filters: Text[250];
-        // << chris test
+
         rec_itemlinecheck: Record ItemLineCheckError;
         rec_itemlinecheck_updateline: Record ItemLineCheckError_updateline;
-    //     chris test >>
+    
     protected var
         HideValidationDialog: Boolean;
 
@@ -425,14 +418,14 @@ report 50101 "ARCo Calc. Item Sales Price_"
         HideValidationDialog := NewHideValidationDialog;
     end;
 
-    //20210627 add by Renee <<
+    
     procedure SetAdjustDate(pAdjustDate: Date)
     begin
         AdjustDate := pAdjustDate;
     end;
-    //20210627 add by Renee >>
+\
 
-    //2021.05.16 add by Renee for Issue Log Part2 客製第 16 項
+    
     procedure CheckItem(p_ItemNo: Code[20]) result: Boolean
     var
         lRec_Item: Record Item;
@@ -461,7 +454,7 @@ report 50101 "ARCo Calc. Item Sales Price_"
         lMsg_BOMLineBlockedItem: Label 'The Item has been blocked of the BOM Component (%1).';
         lMsg_BOMLineItemCate: Label 'The Item Category Code is empty in the Item Card of the BOM Component (%1).';
     begin
-        CLEAR(lRec_ItemCategory);  //20210804 add by Renee
+        CLEAR(lRec_ItemCategory);  
 
         lRec_Item.GET(p_ItemNo);
 
@@ -473,14 +466,12 @@ report 50101 "ARCo Calc. Item Sales Price_"
         IF lRec_Item."Item Category Code" = '' THEN begin
             InsertErrorList(p_ItemNo, lRec_Item."Item Category Code", lMsg_ItemCate);
             exit(false);
-            //20210804 Modify by Renee ---------------------------------------- <<
+
             //end;
         end else begin
             IF lRec_ItemCategory.GET(lRec_Item."Item Category Code") then;
         end;
-        //20210804 Modify by Renee ---------------------------------------- >>
-
-        //20210804 add by Renee --------------------------------- <<
+        
         //當料品分類代碼設定為不做單位轉換時，則第一次計算也不除以缸數(所以將 缸數設定為 1)
         IF NOT lRec_ItemCategory."ARCO Unit Transform" THEN
             lBaseQty := 1
@@ -560,13 +551,13 @@ report 50101 "ARCo Calc. Item Sales Price_"
                             lRec_PurchPrice.SETRANGE("Currency Code", lRec_Vendor."Currency Code");   //20210804 add by Renee
                             lRec_PurchPrice.SETFILTER("Ending Date", '%1|>=%2', 0D, AdjustDate);
                             lRec_PurchPrice.SETRANGE("Starting Date", 0D, AdjustDate);
-                            //上線後需求變更 4-1 20211012 Modify by Renee -------------------------- <<
+
                             //lRec_PurchPrice.SETRANGE("Minimum Quantity", 1);    //20210804 add by Renee
                             //IF lRec_PurchPrice.COUNT = 0 THEN begin
                             lRec_PurchPrice.SETFILTER("Minimum Quantity", '>=%1', 1);
                             lRec_PurchPrice.SETFILTER("ARCO Ref. Price", '>%1', 0);
                             IF lRec_PurchPrice.COUNT <> 1 THEN begin
-                                //上線後需求變更 4-1 20211012 Modify by Renee -------------------------- >>
+
                                 InsertErrorList(p_ItemNo, lRec_Item."Item Category Code", STRSUBSTNO(lMsg_BOMLinePurchPrice, lRec_Item2."No."));
                                 exit(false);
                             end;
@@ -574,13 +565,13 @@ report 50101 "ARCo Calc. Item Sales Price_"
                     end;
                 until lRec_BOMComp.Next = 0;
             end else begin
-                //母件沒有子件
+
                 InsertErrorList(p_ItemNo, lRec_Item."Item Category Code", lMsg_ParetBOMnoBOM);
                 exit(false);
             end;
         end else begin
 
-            //20210804 Modify by Renee ---------------------------------- << 
+     
             //採購件沒有指定主要供應商
             //IF lRec_Item."Vendor No." = '' then begin
             IF (lRec_Item."Replenishment System" = lRec_Item."Replenishment System"::Purchase) AND
@@ -595,16 +586,16 @@ report 50101 "ARCo Calc. Item Sales Price_"
                 lRec_PurchPrice.RESET;
                 lRec_PurchPrice.SETRANGE("Item No.", p_ItemNo);
                 lRec_PurchPrice.SETRANGE("Vendor No.", lRec_Item."Vendor No.");
-                lRec_PurchPrice.SETRANGE("Currency Code", lRec_Vendor."Currency Code");   //20210804 add by Renee
+                lRec_PurchPrice.SETRANGE("Currency Code", lRec_Vendor."Currency Code");
                 lRec_PurchPrice.SETFILTER("Ending Date", '%1|>=%2', 0D, AdjustDate);
                 lRec_PurchPrice.SETRANGE("Starting Date", 0D, AdjustDate);
-                //上線後需求變更 4-1 20211012 Modify by Renee -------------------------- <<
+                
                 // lRec_PurchPrice.SETRANGE("Minimum Quantity", 1);    //20210804 add by Renee
                 // IF lRec_PurchPrice.COUNT = 0 THEN begin
                 lRec_PurchPrice.SETFILTER("Minimum Quantity", '>=%1', 1);
                 lRec_PurchPrice.SETFILTER("ARCO Ref. Price", '>%1', 0);
                 IF lRec_PurchPrice.COUNT <> 1 THEN begin
-                    //上線後需求變更 4-1 20211012 Modify by Renee -------------------------- >>
+
                     InsertErrorList(p_ItemNo, lRec_Item."Item Category Code", lMsg_PurchPrice);
                     exit(false);
                 end;
@@ -614,7 +605,6 @@ report 50101 "ARCo Calc. Item Sales Price_"
         exit(true);
     end;
 
-    //2021.05.16 Mark by Renee for Issue Log Part2 客製第 16 項
     procedure InsertErrorList(p_ItemNo: Code[20]; p_ItemCategory: Code[20]; p_ErrorMsg: Text[250])
     var
     begin
@@ -635,7 +625,7 @@ report 50101 "ARCo Calc. Item Sales Price_"
     begin
         IF p_VendorNo = '' THEN exit(0);
 
-        lRec_Vendor.GET(p_VendorNo);    //20210616 add by Renee
+        lRec_Vendor.GET(p_VendorNo);    
 
         lRec_PurchPrice.RESET;
         lRec_PurchPrice.SETRANGE("Item No.", p_ItemNo);
@@ -643,11 +633,11 @@ report 50101 "ARCo Calc. Item Sales Price_"
         lRec_PurchPrice.SETRANGE("Currency Code", lRec_Vendor."Currency Code");   //20210616 add by Renee
         lRec_PurchPrice.SETFILTER("Ending Date", '%1|>=%2', 0D, AdjustDate);
         lRec_PurchPrice.SETRANGE("Starting Date", 0D, AdjustDate);
-        //上線後需求變更 4-1 20211012 Modify by Renee -------------------------- <<
+        
         //lRec_PurchPrice.SETRANGE("Minimum Quantity", 1);    //20210627 add by Renee
         lRec_PurchPrice.SETFILTER("Minimum Quantity", '>=%1', 1);
         lRec_PurchPrice.SETFILTER("ARCO Ref. Price", '>%1', 0);
-        //上線後需求變更 4-1 20211012 Modify by Renee -------------------------- >>        
+             
         IF lRec_PurchPrice.FindLast() THEN begin
             //IF not p_BOM then
             //    lRec_PurchPrice.Testfield("ARCO Ref. Price");  //2021.05.16 mark by Renee
@@ -675,7 +665,7 @@ report 50101 "ARCo Calc. Item Sales Price_"
                 Window.Update(2, p_ParentItemNo);
             //message('Call %1', p_Call);
 
-            //20210627 Modify by Renee ------------------------------------- <<  
+            
             // IF p_Call = '0' then
             //    CalcItemSalesPrice_withoutBOM(lRec_BOMComp."No.");            
             IF p_Call = '0' then begin
@@ -685,7 +675,7 @@ report 50101 "ARCo Calc. Item Sales Price_"
                     SetItemSalesPriceToZero_withoutBOM(lRec_BOMComp."No.");
                 end;
             end;
-            //20210627 Modify by Renee ------------------------------------- >>
+
 
             lRec_ItemSalesPrice.RESET;
             lRec_ItemSalesPrice.SETRANGE("Adjust Date", AdjustDate);
@@ -742,7 +732,7 @@ report 50101 "ARCo Calc. Item Sales Price_"
                                 end;
                         until rec_itemlinecheck.Next() = 0;
 
-                    // 2024.01.29 chris add for checking Update LineNo. >>
+                    
 
                     Commit(); // 2022.04.27 performance
                 until lRec_ItemSalesPrice.Next = 0;
@@ -791,7 +781,7 @@ report 50101 "ARCo Calc. Item Sales Price_"
             exit;
 
         //lRec_Item.Testfield("Vendor No.");
-        //lRec_Item.Testfield("Item Category Code");  //2021.05.16 mark by Renee for Issue Log Part2 客製第 16 項
+        //lRec_Item.Testfield("Item Category Code");
 
         lRec_ItemCategory.GET(lRec_Item."Item Category Code");
         //lRec_ItemCategory.Testfield("ARCO Box Cost");
@@ -801,11 +791,11 @@ report 50101 "ARCo Calc. Item Sales Price_"
         //lRefPrice 參考價格
         lRec_Item.CalcFields("Assembly BOM");
 
-        //20210804 Modify by Renee ------------------------------------------- <<
+        
         //IF (lRec_Item."Assembly BOM") AND (GetPurch_RefPrice(lRec_Item."No.", lRec_Item."Vendor No.", true) = 0) THEN begin
         //母件若有指定主要供應商，則直接視為子件排價計算，無法判斷是否有採購參考價格
         IF (lRec_Item."Assembly BOM") AND (lRec_Item."Vendor No." = '') THEN begin
-            //20210804 Modify by Renee ------------------------------------------- >>    
+            
             islRefPrice2Zeor := false;
 
             //有 BOM, 且母件是對應多個子件
@@ -822,11 +812,11 @@ report 50101 "ARCo Calc. Item Sales Price_"
                     lRefPrice2 := GetPurch_RefPrice(lRec_Item2."No.", lRec_Item2."Vendor No.", false);
                     lRefPrice += (lRefPrice2 * lRec_BOMComp."Quantity per");
 
-                    //2021.05.16 add by Renee for Issue Log Part2 客製第 16 項 ----------- <<
+                    
                     //母件中有任一子件的參考價為 0，則母件的排價就為 0 (避免母件排價被低估) 
                     IF lRefPrice2 = 0 then islRefPrice2Zeor := true;
                     IF islRefPrice2Zeor then lRefPrice := 0;
-                //2021.05.16 Mark by Renee for Issue Log Part2 客製第 16 項 ---------- >>             
+                
 
                 until lRec_BOMComp.Next = 0;
             end;
@@ -844,12 +834,12 @@ report 50101 "ARCo Calc. Item Sales Price_"
         ELSE
             lBoxCost := lRec_ItemCategory."ARCO Box Cost";
 
-        //20210804 add by Renee --------------------------- <<
+        
         //當料品分類代碼設定為不做單位轉換時，則第一次計算也不除以缸數(所以將 缸數設定為 1)
         IF NOT lRec_ItemCategory."ARCO Unit Transform" then begin
             lBaseQty := 1;
         end else begin
-            //20210804 add by Renee --------------------------- >>
+            
             //lBaseQty 缸數
             IF lRec_Item."ARCO Unit Qty. Of Packing" <> 0 then
                 lBaseQty := lRec_Item."ARCO Unit Qty. Of Packing"
@@ -859,7 +849,7 @@ report 50101 "ARCo Calc. Item Sales Price_"
 
         lRec_Currency.RESET;
         lRec_Currency.SETRANGE("ARCO Sales Level Price Calc.", TRUE);
-        IF CurrencyFilter <> '' then  //2021.05.16 add by Renee for Issue Log Part2 客製第 16 項
+        IF CurrencyFilter <> '' then  
             lRec_Currency.SetFilter(Code, CurrencyFilter);
 
         IF lRec_Currency.FindSet() then begin
@@ -931,7 +921,7 @@ report 50101 "ARCo Calc. Item Sales Price_"
                         // << 2024.01.29 chris add for checking Update LineNo.
                         if rec_itemlinecheck.FindSet() then
                             repeat
-                                if rec_itemlinecheck."Parent Iten No." = lRec_BOMComp."Parent Item No." then  // << chris add 抓到料號沒有bom
+                                if rec_itemlinecheck."Parent Iten No." = lRec_BOMComp."Parent Item No." then  // 
                                     if rec_itemlinecheck."Currency Code" = lRec_Currency.Code then
                                         if rec_itemlinecheck.Level = lRec_ItemSalesPrice."Level Code" then begin
                                             rec_itemlinecheck.Date := AdjustDate;
@@ -940,7 +930,7 @@ report 50101 "ARCo Calc. Item Sales Price_"
                                             rec_itemlinecheck.Modify();
                                         end;
 
-                                if rec_itemlinecheck."no." = lRec_BOMComp."Parent Item No." then   // << chris add 抓到料號有bom
+                                if rec_itemlinecheck."no." = lRec_BOMComp."Parent Item No." then   
                                     if rec_itemlinecheck."Currency Code" = lRec_Currency.Code then
                                         if rec_itemlinecheck.Level = lRec_ItemSalesPrice."Level Code" then begin
                                             rec_itemlinecheck.Date := AdjustDate;
@@ -950,7 +940,7 @@ report 50101 "ARCo Calc. Item Sales Price_"
                                         end;
                             until rec_itemlinecheck.Next() = 0;
 
-                        // < --------------------------------Frank test
+
                         // rec_itemlinecheck.Reset();
                         // if not lRec_Item."Assembly BOM" then
                         //     rec_itemlinecheck.SetRange("Parent Iten No.", lRec_BOMComp."Parent Item No.")
@@ -964,9 +954,9 @@ report 50101 "ARCo Calc. Item Sales Price_"
                         //     rec_itemlinecheck."Check Item" := true;
                         //     rec_itemlinecheck.Modify();
                         // end;
-                        // ----------------------------------Frank >>
 
-                        // << 2024.01.29 chris add for checking Update LineNo.
+
+                        
 
                         Commit(); // 2022.04.27 performance
                     END;
@@ -980,10 +970,9 @@ report 50101 "ARCo Calc. Item Sales Price_"
         IF lRec_BOMComp2.FindSet() THEN begin
             repeat
                 lRec_Item2.GET(lRec_BOMComp2."Parent Item No.");
-                IF lRec_Item2."Vendor No." = '' THEN BEGIN  //20210804 add by Renee
+                IF lRec_Item2."Vendor No." = '' THEN BEGIN  
                                                             //母件沒有指定供應商時，才需因子件重新排價而重新計算
-                    IF CheckItem(lRec_Item2."No.") THEN begin   //2021.05.16 add by Renee for Issue Log Part2 客製第 16 項
-
+                    IF CheckItem(lRec_Item2."No.") THEN begin   
                         lRec_BOMComp3.RESET;
                         lRec_BOMComp3.SETRANGE(Type, lRec_BOMComp3.Type::Item);
                         lRec_BOMComp3.SETRANGE("Parent Item No.", lRec_BOMComp2."Parent Item No.");
@@ -1010,12 +999,12 @@ report 50101 "ARCo Calc. Item Sales Price_"
                             // else
                             //     CalcItemSalesPrice_BOM_C(lRec_BOMComp2."Parent Item No.", '1')
                             CalcItemSalesPrice_BOM_C(lRec_BOMComp2."Parent Item No.", '1');
-                            //20210804 Modify by Renee ------------------------------------ >>
+                            
                         end else
                             SetItemSalesPriceToZero_withoutBOM(lRec_BOMComp2."Parent Item No.");
                     end;
-                    //20210627 Modify by Renee ------------------------------------------------------- >>
-                END;    //20210804 add by Renee
+                    
+                END;    
             until lRec_BOMComp2.NEXT = 0;
         end;
     end;
@@ -1081,7 +1070,7 @@ report 50101 "ARCo Calc. Item Sales Price_"
 
         lRec_Currency.RESET;
         lRec_Currency.SETRANGE("ARCO Sales Level Price Calc.", TRUE);
-        IF CurrencyFilter <> '' then  //2021.05.16 add by Renee for Issue Log Part2 客製第 16 項
+        IF CurrencyFilter <> '' then  
             lRec_Currency.SetFilter(Code, CurrencyFilter);
 
         IF lRec_Currency.FindSet() then begin
@@ -1113,7 +1102,7 @@ report 50101 "ARCo Calc. Item Sales Price_"
                         lRec_ItemSalesPrice."Unit Qty Of Packing" := lBaseQty;
 
                         //第一次計算：（參考價格+盒子成本）/匯率/利潤1/缸數=售價1
-                        //IF SetToZero then   //2021.05.16 add by Renee for Issue Log Part2 客製第 16 項
+                        //IF SetToZero then   
                         // IF SetToZero OR islRefPrice2Zeor then   //20210616 Modify by Renee
                         //     lRec_ItemSalesPrice."Unit Price" := 0
                         // else
@@ -1141,29 +1130,6 @@ report 50101 "ARCo Calc. Item Sales Price_"
                                 lRec_Item.Modify();
                             end;
                         end;
-                        // << 2024.01.29 chris add for checking Update LineNo.
-                        // if rec_itemlinecheck.FindSet() then
-                        //     repeat
-                        //         if rec_itemlinecheck."Parent Iten No." = lRec_BOMComp."Parent Item No." then  // << chris add 抓到料號沒有bom
-                        //             if rec_itemlinecheck."Currency Code" = lRec_Currency.Code then
-                        //                 if rec_itemlinecheck.Level = lRec_ItemSalesPrice."Level Code" then begin
-                        //                     rec_itemlinecheck.Date := AdjustDate;
-                        //                     rec_itemlinecheck."Unit Price" := lRec_ItemSalesPrice."Unit Price";
-                        //                     rec_itemlinecheck."Check Item" := true;
-                        //                     rec_itemlinecheck.Modify();
-                        //                 end;
-
-                        //         if rec_itemlinecheck."no." = lRec_BOMComp."Parent Item No." then   // << chris add 抓到料號有bom
-                        //             if rec_itemlinecheck."Currency Code" = lRec_Currency.Code then
-                        //                 if rec_itemlinecheck.Level = lRec_ItemSalesPrice."Level Code" then begin
-                        //                     rec_itemlinecheck.Date := AdjustDate;
-                        //                     rec_itemlinecheck."Unit Price" := lRec_ItemSalesPrice."Unit Price";
-                        //                     rec_itemlinecheck."Check Item" := true;
-                        //                     rec_itemlinecheck.Modify();
-                        //                 end;
-                        //     until rec_itemlinecheck.Next() = 0;
-
-                        // << 2024.01.29 chris add for checking Update LineNo.
                         Commit(); // 2022.04.27 performance
                     END;
                 end;
@@ -1204,7 +1170,7 @@ report 50101 "ARCo Calc. Item Sales Price_"
         end;
     end;
 
-    // << 2024.01.17 chris add >>
+    
     procedure checkItemLineError() result: Boolean
     var
         IsHandled: Boolean;
@@ -1222,7 +1188,7 @@ report 50101 "ARCo Calc. Item Sales Price_"
             IF (item."Vendor No." <> '') then begin  //"Vendor No."
                 //20210804 Modify by Renee -------------------------- >>
                 CalcItemSalesPrice_withoutBOM(item."No.");  //"No."
-                exit(true)  // chris test
+                exit(true)
             end else begin
                 lRec_BOMComp3.RESET;
                 lRec_BOMComp3.SETRANGE(Type, lRec_BOMComp3.Type::Item);
@@ -1231,19 +1197,19 @@ report 50101 "ARCo Calc. Item Sales Price_"
                     CalcItemSalesPrice_BOM_C(item."No.", '0')  //"No."
                 else
                     CalcItemSalesPrice_withoutBOM(item."No.");  //"No."
-                exit(true)  // chris test
+                exit(true)  
             end;
             //commit;
-            //20210627 Modify by Renee ---------------------- <<
+
             //end;
         end else begin
-            //20210804 Modify by Renee -------------------------- <<
+            
             //無論是子件或是母件，只要有指定主要供應商，則視為採購件的計算方式(A)
             //IF (GetPurch_RefPrice("No.", "Vendor No.", true) > 0) THEN begin
             IF (item."Vendor No." <> '') then begin   //"Vendor No."
                 //20210804 Modify by Renee -------------------------- >>
                 SetItemSalesPriceToZero_withoutBOM(item."No."); //"No."
-                exit(true)  // chris test
+                exit(true)
             end else begin
                 lRec_BOMComp3.RESET;
                 lRec_BOMComp3.SETRANGE(Type, lRec_BOMComp3.Type::Item);
@@ -1252,11 +1218,11 @@ report 50101 "ARCo Calc. Item Sales Price_"
                     CalcItemSalesPrice_BOM_C(item."No.", '0') //"No."
                 else
                     SetItemSalesPriceToZero_withoutBOM(item."No."); //"No."
-                exit(true)  // chris test
+                exit(true)
             end;
         end;
 
-        //20210627 Modify by Renee ---------------------- >>
+       
 
     end;
 }
